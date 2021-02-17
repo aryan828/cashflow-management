@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #define MAX_STRING_SIZE 20
 #define MAX_USERS 10
 
@@ -34,9 +35,26 @@ struct transaction
     float amount;
 };
 
+int getRandomInt(){
+    long long int number =rand(), temp;
+    temp = number;
+    int count=0;
+    while (temp != 0) {
+        temp/= 10;     
+        ++count;
+    }
+    if(count<4){
+        for(int i=0;i<4-count;i++) number=number*10;
+    }
+    if(count>4){
+        for(int i=0;i<count-4;i++) number=number/10;
+    }
+    return number;
+}
+
 struct group* createGroup(){
     struct group *newGroup = (struct group*)malloc(sizeof(struct group));
-    newGroup->groupid = currentGroupID;
+    newGroup->groupid = getRandomInt();
     scanf("%d",&newGroup->noPeople);
     scanf("%s",newGroup->groupName);
     for(int i=0;i<newGroup->noPeople;i++)
@@ -44,27 +62,29 @@ struct group* createGroup(){
             newGroup->money[i][j]=0;
     for(int i=0;i<newGroup->noPeople; i++){
         struct user *usr = (struct user*)malloc(sizeof(struct user));
-        usr->userid = currentUserID;
-        currentUserID++;
+        usr->userid = getRandomInt();
+        //currentUserID++;
         scanf("%s",usr->name);
         newGroup->list[i] = usr;
         // free(usr);
     }
     groupList[currentGroupID-1] = newGroup;
-    currentGroupID++;
+    //currentGroupID++;
 }
+
 
 void makeTransaction()
 {
     struct transaction *newtrans=(struct transaction*)malloc(sizeof(struct transaction));
-    newtrans->tid=currentTransactionID;
-    currentTransactionID++;
+    newtrans->tid=getRandomInt();
+    //currentTransactionID++;
     scanf("%d",&newtrans->groupid);
     scanf("%d",&newtrans->giverid);
     scanf("%f",&newtrans->amount);
 }
 
 int main(){
+    srand(time(0));
     struct group *grp = createGroup();
     printf("\n%d %d\n%s\n",grp->groupid,grp->noPeople,grp->groupName);
     for(int i=0;i<grp->noPeople;i++){
