@@ -5,11 +5,12 @@
 #define MAX_STRING_SIZE 20
 #define MAX_USERS 10
 
-int currentGroupID = 1;
-int currentUserID = 1;
-int currentTransactionID = 1;
+// int currentGroupID = 1;
+// int currentUserID = 1;
+// int currentTransactionID = 1;
+int groups = 0;
 
-struct group *groupList[5];
+struct group *groupList[50];
 
 struct group
 {
@@ -52,7 +53,21 @@ int getRandomInt(){
     return number;
 }
 
-struct group* createGroup(){
+void insertInList()
+{
+    if(groups==1){
+        return;
+    }
+    struct group *key = groupList[groups-1];
+    int j = groups-2;
+    while(j>=0 && groupList[j]->groupid>key->groupid){
+        groupList[j+1] = groupList[j];
+        j--;
+    }
+    groupList[j+1] = key;
+}
+
+void createGroup(){
     struct group *newGroup = (struct group*)malloc(sizeof(struct group));
     newGroup->groupid = getRandomInt();
     scanf("%d",&newGroup->noPeople);
@@ -68,7 +83,9 @@ struct group* createGroup(){
         newGroup->list[i] = usr;
         // free(usr);
     }
-    groupList[currentGroupID-1] = newGroup;
+    groupList[groups] = newGroup;
+    groups++;
+    insertInList();
     //currentGroupID++;
 }
 
@@ -85,10 +102,17 @@ void makeTransaction()
 
 int main(){
     srand(time(0));
-    struct group *grp = createGroup();
-    printf("\n%d %d\n%s\n",grp->groupid,grp->noPeople,grp->groupName);
-    for(int i=0;i<grp->noPeople;i++){
-        printf("%d %s\n",grp->list[i]->userid,grp->list[i]->name);
+    freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
+    int nums;
+    scanf("%d",&nums);
+    for(int i=0;i<nums;i++)
+        createGroup();
+    for(int i=0;i<nums;i++){
+        printf("%d %s\t",groupList[i]->groupid,groupList[i]->groupName);
+        for(int j=0;j<groupList[i]->noPeople;j++)
+            printf("%s ",groupList[i]->list[j]->name);
+        printf("\n");
     }
     return 0;
 }
