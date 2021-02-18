@@ -51,8 +51,8 @@ int getRandomInt() {
 
 struct group *getGroup(int key) {
     int lowIndex = 0, highIndex = groups, midIndex;
-    while(lowIndex<highIndex) {
-        midIndex = (lowIndex+highIndex)/2;
+    while(lowIndex <= highIndex) {
+        midIndex = lowIndex + (highIndex - lowIndex)/2;
         if(groupList[midIndex]->groupid == key)
             return groupList[midIndex];
         if(groupList[midIndex]->groupid > key)
