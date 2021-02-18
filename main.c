@@ -2,42 +2,38 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #define MAX_STRING_SIZE 20
 #define MAX_USERS 10
+#define MAX_GROUPS 20
 
-// int currentGroupID = 1;
-// int currentUserID = 1;
-// int currentTransactionID = 1;
 int groups = 0;
 
-struct group *groupList[50];
+struct group *groupList[MAX_GROUPS];
 
-struct group
-{
-    int groupid;
+struct group {
+    __uint64_t groupid;
     int noPeople;
     char groupName[MAX_STRING_SIZE];
     struct user *list[MAX_USERS];
     int money[MAX_USERS][MAX_USERS];
 };
 
-struct user
-{
-    int userid;
+struct user {
+    __uint64_t userid;
     char name[MAX_STRING_SIZE];
 };
 
-struct transaction
-{
-    int tid;
+struct transaction {
+    __uint64_t tid;
     int groupid;
     int giverid;
     // int borrowers[MAX_USERS];
     float amount;
 };
 
-int getRandomInt(){
-    long long int number =rand(), temp;
+int getRandomInt() {
+    __uint64_t number = rand(), temp;
     temp = number;
     int count=0;
     while (temp != 0) {
@@ -51,6 +47,19 @@ int getRandomInt(){
         for(int i=0;i<count-4;i++) number=number/10;
     }
     return number;
+}
+
+struct group *getGroup(int key) {
+    int lowIndex = 0, highIndex = groups, midIndex;
+    while(lowIndex<highIndex) {
+        midIndex = (lowIndex+highIndex)/2;
+        if(groupList[midIndex]->groupid == key)
+            return groupList[midIndex];
+        if(groupList[midIndex]->groupid > key)
+            lowIndex = midIndex+1;
+        if(groupList[midIndex]->groupid < key)
+            highIndex = midIndex-1;
+    }
 }
 
 void insertInList()
@@ -100,15 +109,15 @@ void makeTransaction()
     scanf("%f",&newtrans->amount);
 }
 
-int main(){
-    srand(time(0));
+int main() {
+    srand( time(0) );
     freopen("input.txt", "r", stdin);
 	freopen("output.txt", "w", stdout);
     int nums;
-    scanf("%d",&nums);
-    for(int i=0;i<nums;i++)
+    scanf("%d", &nums);
+    for(int i=0; i<nums; i++)
         createGroup();
-    for(int i=0;i<nums;i++){
+    for(int i=0; i<nums; i++) {
         printf("%d %s\t",groupList[i]->groupid,groupList[i]->groupName);
         for(int j=0;j<groupList[i]->noPeople;j++)
             printf("%s ",groupList[i]->list[j]->name);
