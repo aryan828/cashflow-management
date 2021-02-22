@@ -95,9 +95,7 @@ void createGroup(){
     groupList[groups] = newGroup;
     groups++;
     insertInList();
-    //currentGroupID++;
 }
-
 
 void makeTransaction()
 {
@@ -107,21 +105,70 @@ void makeTransaction()
     scanf("%d",&newtrans->groupid);
     scanf("%d",&newtrans->giverid);
     scanf("%f",&newtrans->amount);
+    struct group* temp=getGroup(newtrans->giverid);
+    //temp->money
+    int cnt;
+    for(int i=0;i<temp->noPeople;i++){
+        if(temp->list[i]->userid==newtrans->giverid){
+            cnt=i;
+        }
+    }
+    for(int j=0;j<temp->noPeople;j++){
+        temp->money[cnt][j]=newtrans->amount/temp->noPeople;
+    }
+}
+
+void setSeed(){
+    srand( time(0) );
+}
+
+void selectInputandOutputFile(){
+    freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
 }
 
 int main() {
-    srand( time(0) );
-    freopen("input.txt", "r", stdin);
-	freopen("output.txt", "w", stdout);
-    int nums;
-    scanf("%d", &nums);
-    for(int i=0; i<nums; i++)
-        createGroup();
-    for(int i=0; i<nums; i++) {
-        printf("%d %s\t",groupList[i]->groupid,groupList[i]->groupName);
-        for(int j=0;j<groupList[i]->noPeople;j++)
-            printf("%s ",groupList[i]->list[j]->name);
-        printf("\n");
+    setSeed();
+    // selectInputandOutputFile();
+    int loop = 1;
+    struct group* temp;
+    int id;
+    while(loop){
+        printf("1.Create group  2.View all groups   3.View group\n");
+        int ch;
+        scanf("%d",&ch);
+        switch(ch){
+            case 1: createGroup();
+                    break;
+            case 2: for(int i=0; i<groups;i++){
+                        printf("%d %s\n",groupList[i]->groupid,groupList[i]->groupName);
+                    }
+                    break;
+            case 3: scanf("%d",&id);
+                    temp=getGroup(id);
+                    printf("%d %s\n",temp->groupid,temp->groupName);
+                    for(int i=0;i<temp->noPeople;i++){
+                        printf("%d %s\n",temp->list[i]->userid,temp->list[i]->name);
+                    }
+                    break;
+            case 4: loop =0;
+                    break;
+            case 5: makeTransaction();
+                    break;
+            default: break;
+        }
     }
+    
+
+    // int nums;
+    // scanf("%d", &nums);
+    // for(int i=0; i<nums; i++)
+    //     createGroup();
+    // for(int i=0; i<nums; i++) {
+    //     printf("%d %s\t",groupList[i]->groupid,groupList[i]->groupName);
+    //     for(int j=0;j<groupList[i]->noPeople;j++)
+    //         printf("%s ",groupList[i]->list[j]->name);
+    //     printf("\n");
+    // }
     return 0;
 }
