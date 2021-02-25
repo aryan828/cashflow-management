@@ -16,7 +16,7 @@ struct group {
     int noPeople;
     char groupName[MAX_STRING_SIZE];
     struct user *list[MAX_USERS];
-    int money[MAX_USERS][MAX_USERS];
+    float money[MAX_USERS][MAX_USERS];
 };
 
 struct user {
@@ -28,7 +28,6 @@ struct transaction {
     __uint64_t tid;
     int groupid;
     int giverid;
-    // int borrowers[MAX_USERS];
     float amount;
 };
 
@@ -49,7 +48,7 @@ int getRandomInt() {
     return number;
 }
 
-struct group *getGroup(int key) {
+struct group* getGroup(int key) {
     int lowIndex = 0, highIndex = groups, midIndex;
     while(lowIndex <= highIndex) {
         midIndex = lowIndex + (highIndex - lowIndex)/2;
@@ -62,8 +61,20 @@ struct group *getGroup(int key) {
     }
 }
 
-void insertInList()
-{
+void printMat(){
+    int gid;
+    printf("\nEnter Group-id: ");
+    scanf("%d", &gid);
+    struct group* temp = getGroup(gid);
+    for(int i=0;i<temp->noPeople;i++){
+        for(int j=0;j<temp->noPeople;j++){
+            printf("%f ",temp->money[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void insertInList() {
     if(groups==1){
         return;
     }
@@ -79,7 +90,9 @@ void insertInList()
 void createGroup(){
     struct group *newGroup = (struct group*)malloc(sizeof(struct group));
     newGroup->groupid = getRandomInt();
+    printf("\nEnter number of people: ");
     scanf("%d",&newGroup->noPeople);
+    printf("\nEnter Group Name: ");
     scanf("%s",newGroup->groupName);
     for(int i=0;i<newGroup->noPeople;i++)
         for(int j=0;j<newGroup->noPeople;j++)
@@ -87,26 +100,46 @@ void createGroup(){
     for(int i=0;i<newGroup->noPeople; i++){
         struct user *usr = (struct user*)malloc(sizeof(struct user));
         usr->userid = getRandomInt();
-        //currentUserID++;
+        printf("\nEnter name os user %d :", i);
         scanf("%s",usr->name);
         newGroup->list[i] = usr;
-        // free(usr);
     }
     groupList[groups] = newGroup;
     groups++;
     insertInList();
 }
 
+void viewAllGroups(){
+    printf("\nAvailable groups: \nGroup ID | Group Name");
+    printf("\n----------------------\n");
+    for(int i=0; i<groups;i++){
+        printf("%ld     | %s\n",groupList[i]->groupid,groupList[i]->groupName);
+    }
+}
+
+void viewGroup(int id){
+    struct group* temp = getGroup(id);
+    printf("\nGroup-id: %ld Group Name: %s\n",temp->groupid,temp->groupName);
+    printf("User-id | Username");
+    printf("\n----------------------\n");
+    for(int i=0;i<temp->noPeople;i++){
+        printf("%ld    | %s\n",temp->list[i]->userid,temp->list[i]->name);
+    }
+}
+
 void makeTransaction()
 {
     struct transaction *newtrans=(struct transaction*)malloc(sizeof(struct transaction));
     newtrans->tid=getRandomInt();
-    //currentTransactionID++;
+    viewAllGroups();
+    printf("\nEnter group-id: ");
     scanf("%d",&newtrans->groupid);
+    viewGroup(newtrans->groupid);
+    printf("\nEnter user-id: ");
     scanf("%d",&newtrans->giverid);
+    printf("\nEnter amount: ");
     scanf("%f",&newtrans->amount);
-    struct group* temp=getGroup(newtrans->giverid);
-    //temp->money
+    struct group* temp=getGroup(newtrans->groupid);
     int cnt;
     for(int i=0;i<temp->noPeople;i++){
         if(temp->list[i]->userid==newtrans->giverid){
@@ -114,7 +147,7 @@ void makeTransaction()
         }
     }
     for(int j=0;j<temp->noPeople;j++){
-        temp->money[cnt][j]=newtrans->amount/temp->noPeople;
+        temp->money[cnt][j]+=newtrans->amount/temp->noPeople;
     }
 }
 
@@ -122,53 +155,93 @@ void setSeed(){
     srand( time(0) );
 }
 
-void selectInputandOutputFile(){
-    freopen("input.txt", "r", stdin);
-	freopen("output.txt", "w", stdout);
+int getMin(float arr[], int N) 
+{ 
+    int minInd = 0; 
+    for (int i=1; i<N; i++) 
+        if (arr[i] < arr[minInd]) 
+            minInd = i; 
+    return minInd; 
+} 
+
+int getMax(float arr[], int N) 
+{ 
+    int maxInd = 0; 
+    for (int i=1; i<N; i++) 
+        if (arr[i] > arr[maxInd]) 
+            maxInd = i; 
+    return maxInd; 
 }
+
+float minOf2(float x, float y) 
+{ 
+    return (x<y)? x: y; 
+}
+
+void minCashFlowRec(float amount[], int N) 
+{
+    int mxCredit = getMax(amount, N), mxDebit = getMin(amount, N);
+    if ((int)amount[mxCredit] == 0 && (int)amount[mxDebit] == 0) 
+        return;
+    float min = minOf2(-amount[mxDebit], amount[mxCredit]); 
+    amount[mxCredit] -= min; 
+    amount[mxDebit] += min;
+    printf("Person %d pays %f to Person %d\n",mxDebit,min,mxCredit);
+    minCashFlowRec(amount, N); 
+} 
+
+void minCashFlow(struct group *temp) 
+{
+    int N = temp->noPeople;
+    float amount[N];
+    for (int i = 0; i < N; i++)
+    {
+        amount[i] = 0;
+    }
+    
+
+    for (int p=0; p<N; p++) 
+       for (int i=0; i<N; i++) 
+          amount[p] += (temp->money[i][p] -  temp->money[p][i]); 
+  
+    minCashFlowRec(amount, N); 
+} 
 
 int main() {
     setSeed();
-    // selectInputandOutputFile();
     int loop = 1;
     struct group* temp;
     int id;
-    while(loop){
-        printf("1.Create group  2.View all groups   3.View group\n");
+    while(loop) {
+        printf("1.Create group  2.View all groups  3.View group  4.Exit  5.Add Transaction  6.PrintMat  7.Simplify Debts\n");
         int ch;
         scanf("%d",&ch);
         switch(ch){
             case 1: createGroup();
                     break;
-            case 2: for(int i=0; i<groups;i++){
-                        printf("%d %s\n",groupList[i]->groupid,groupList[i]->groupName);
-                    }
+            case 2: viewAllGroups();
                     break;
-            case 3: scanf("%d",&id);
-                    temp=getGroup(id);
-                    printf("%d %s\n",temp->groupid,temp->groupName);
-                    for(int i=0;i<temp->noPeople;i++){
-                        printf("%d %s\n",temp->list[i]->userid,temp->list[i]->name);
-                    }
+            case 3: viewAllGroups();
+                    printf("Enter group-id: ");
+                    scanf("%d",&id);
+                    viewGroup(id);
                     break;
-            case 4: loop =0;
+            case 4: loop = 0;
                     break;
             case 5: makeTransaction();
+                    break;
+            case 6: viewAllGroups();
+                    printMat();
+                    break;
+            case 7: viewAllGroups();
+                    printf("Enter group-id: ");
+                    scanf("%d",&id);
+                    temp = getGroup(id);
+                    minCashFlow(temp);
                     break;
             default: break;
         }
     }
-    
 
-    // int nums;
-    // scanf("%d", &nums);
-    // for(int i=0; i<nums; i++)
-    //     createGroup();
-    // for(int i=0; i<nums; i++) {
-    //     printf("%d %s\t",groupList[i]->groupid,groupList[i]->groupName);
-    //     for(int j=0;j<groupList[i]->noPeople;j++)
-    //         printf("%s ",groupList[i]->list[j]->name);
-    //     printf("\n");
-    // }
     return 0;
 }
